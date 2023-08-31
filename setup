@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+
+# HELPERS
+#########
+
+function _confirm() {
+  read -p "$1" -n 1 -r reply
+  case "$reply" in
+    y|Y ) echo && return 0 ;;
+    * )   echo && return 1 ;;
+  esac
+}
+
+# _copyFile source destination [sudo]
+# Copies source file to destination, offering to backup if contents differ.
+function _copyFile() {
+  local src="$1"
+  local dest="$2"
+  local sudo="$3"
+  if [ -f "$dest" ]; then
+    if ! cmp -s "$src" "$dest"; then
+      if _confirm "Would you like to backup $dest before updating?"; then
+        mv "$dest" "${dest}.bak"
+      fi
+    else
+      exit 0
+    fi
+  fi
+
+  if [ "$sudo" ]; then
+    _sudo cp "$src" "$dest"
+  else
+    cp "$src" "$dest"
+  fi
+}
+
+function _sudo() {
+  echo "Executing '$*' as sudo"
+  sudo "$@"
+}
+
+# Package Manager
+#################
+
+function _updatePkgRepos() {
+  _sudo apt update
+}
+
+function _install() {
+  IFS=":" read -r -a progs <<< "$1"
+  local prog=${progs[0]}
+  local exe=${progs[1]:-$prog}
+  if [ ! -x "$(command -v "$exe")" ]; then
+    echo "Installing $prog..."
+    _sudo apt install -y "$prog"
+  fi
+}
+
+# INSTALL
+#########
+
+_updatePkgRepos
+
+for prog in \
+  exa \
+  git \
+  python3 \
+  python3-distutils:NULL \
+  ripgrep:rg \
+  shellcheck \
+  vim \
+; do
+  _install "$prog"
+done
+
+if [ ! -x "$(command -v python)" ]; then
+  # Symlink python to python3
+  _sudo update-alternatives --install /usr/bin/python python "$(which python3)" 100
+fi
+
+if [ ! -x "$(command -v apt-vim)" ]; then
+  echo "Installing apt-vim..."
+  curl -sL https://raw.githubusercontent.com/egalpin/apt-vim/master/install.sh | sh
+  sed -i '/\.vimpkg\/bin/d' "$HOME/.bashrc"
+fi
+
+# CONFIGURE
+###########
+
+# Profile
+#########
+for file in files/profile.d/*.sh; do
+  _copyFile "$file" "/etc/profile.d/$(basename "$file")" sudo
+done
+
+# Git
+#####
+_copyFile files/gitignore "$HOME/.gitignore"
+
+# Vim
+#####
+_copyFile files/vimrc "$HOME/.vimrc"

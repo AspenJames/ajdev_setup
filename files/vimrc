@@ -1,0 +1,25 @@
+syntax on
+filetype plugin indent on
+colors slate
+
+set nu rnu
+set wildmenu
+set hlsearch incsearch smartcase
+set scrolloff=5
+set wrap linebreak
+set nobackup noundofile
+set tabstop=8 softtabstop=8 shiftwidth=2 expandtab smarttab
+
+augroup vimrcEx
+  au!
+  autocmd FileType text setlocal textwidth=78
+augroup END
+
+cnoremap w!! execute 'silent! write !sudo tee % >/dev/null' <bar> edit!
+nnoremap j gj
+nnoremap k gk
+
+nnoremap <leader>h :noh<CR>
+nnoremap <leader>q :q<CR>
+nnoremap <leader>w :w<CR>
+nnoremap <leader>wq :wq<CR>

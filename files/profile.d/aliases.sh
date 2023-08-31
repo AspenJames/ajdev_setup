@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Git
+#####
+alias ga='git add'
+alias gb='git branch'
+alias gcl='git clone'
+alias gd='git diff'
+alias gl='git log --oneline'
+alias gm='git commit -m'
+alias gpsh='git push'
+alias gs='git status'
+
+# Utils
+#######
+[ -x "$(command -v batcat)" ] && alias bat=batcat
+[ -x "$(command -v exa)" ] && alias ls=exa
