@@ -67,9 +67,11 @@ function _updatePkgRepos() {
 }
 
 function _install() {
-  IFS=":" read -r -a progs <<< "$1"
+  local IFS=":"
+  read -r -a progs <<< "$1"
   local prog=${progs[0]}
   local exe=${progs[1]:-$prog}
+
   if [ ! -x "$(command -v "$exe")" ]; then
     echo "Installing $prog..."
     _sudo apt install -y "$prog"
