@@ -43,7 +43,7 @@ function _copyFile() {
         mv "$dest" "${dest}.bak"
       fi
     else
-      exit 0
+      return 0
     fi
   fi
 
@@ -67,8 +67,8 @@ function _updatePkgRepos() {
 }
 
 function _install() {
-  local IFS=":"
-  read -r -a progs <<< "$1"
+  OLDIFS="$IFS"
+  IFS=":" read -r -a progs <<< "$1"
   local prog=${progs[0]}
   local exe=${progs[1]:-$prog}
 
@@ -76,6 +76,7 @@ function _install() {
     echo "Installing $prog..."
     _sudo apt install -y "$prog"
   fi
+  IFS="$OLDIFS"
 }
 
 # INSTALL
@@ -117,7 +118,7 @@ done
 
 # Git
 #####
-_copyFile files/gitignore "$HOME/.gitignore"
+_copyFile files/gitconfig "$HOME/.gitconfig"
 
 # Vim
 #####
