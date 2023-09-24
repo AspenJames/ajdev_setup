@@ -85,6 +85,7 @@ function _install() {
 _updatePkgRepos
 
 for prog in \
+  build-essential:NULL \
   exa \
   git \
   python3 \
