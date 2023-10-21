@@ -86,6 +86,7 @@ _updatePkgRepos
 
 for prog in \
   build-essential:NULL \
+  curl \
   exa \
   git \
   python3 \
