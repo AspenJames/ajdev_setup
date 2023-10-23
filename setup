@@ -40,7 +40,11 @@ function _copyFile() {
   if [ -f "$dest" ]; then
     if ! cmp -s "$src" "$dest"; then
       if _confirm "Would you like to backup $dest before updating?"; then
-        mv "$dest" "${dest}.bak"
+        if [ "$sudo" ]; then
+          _sudo mv "$dest" "${dest}.bak"
+        else
+          mv "$dest" "${dest}.bak"
+        fi
       fi
     else
       return 0
