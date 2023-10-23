@@ -40,7 +40,11 @@ function _copyFile() {
   if [ -f "$dest" ]; then
     if ! cmp -s "$src" "$dest"; then
       if _confirm "Would you like to backup $dest before updating?"; then
-        mv "$dest" "${dest}.bak"
+        if [ "$sudo" ]; then
+          _sudo mv "$dest" "${dest}.bak"
+        else
+          mv "$dest" "${dest}.bak"
+        fi
       fi
     else
       return 0
@@ -86,8 +90,10 @@ _updatePkgRepos
 
 for prog in \
   build-essential:NULL \
+  curl \
   exa \
   git \
+  golang:go \
   python3 \
   python3-distutils:NULL \
   ripgrep:rg \
@@ -116,6 +122,11 @@ fi
 for file in files/profile.d/*.sh; do
   _copyFile "$file" "/etc/profile.d/$(basename "$file")" sudo
 done
+
+# Unset default history settings
+if grep -qE '(histappend|HISTCONTROL|HISTFILESIZE|HISTSIZE|HISTTIMEFORMAT)' "$HOME/.bashrc"; then
+  sed -i -E '/(histappend|HISTCONTROL|HISTFILESIZE|HISTSIZE|HISTTIMEFORMAT)/d' "$HOME/.bashrc"
+fi
 
 # Git
 #####

@@ -5,6 +5,7 @@
 alias ga='git add'
 alias gb='git branch'
 alias gcl='git clone'
+alias gco='git checkout'
 alias gd='git diff'
 alias gl='git log --oneline'
 alias gm='git commit -m'
