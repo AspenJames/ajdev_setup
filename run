@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+#
+# Download ajdev-init source & execute setup script.
+#
+#  Env Var            Default               Description
+#  TMPDIR             OS default or '/tmp'  Temporary directory
+#  AJDEV_INIT_BRANCH  main                  Branch to download
+
+set -x
+
+DL_DIR="${TMPDIR:-/tmp}/ajdev-init"
+TGT_BRANCH="${AJDEV_INIT_BRANCH:-main}"
+
+mkdir -p "$DL_DIR"
+function cleanup() {
+  rm -rf "$DL_DIR"
+}
+trap cleanup EXIT INT
+
+DL_URL="https://github.com/aspenjames/ajdev_init/archive/refs/heads/${TGT_BRANCH}.tar.gz"
+
+pushd "$DL_DIR" || true
+  if [ -x "$(command -v curl)" ]; then
+    curl -L "$DL_URL" | tar xzf -
+  elif [ -x "$(command -v wget)" ]; then
+    wget -O- "$DL_URL" | tar xzf -
+  fi
+
+  pushd "$DL_DIR/ajdev_init-${TGT_BRANCH}" || true
+    sh ./setup
+  popd || true
+
+popd || true
+
