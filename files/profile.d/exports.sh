@@ -4,6 +4,7 @@
 ######
 PATH="$PATH:$HOME/.vimpkg/bin"
 PATH="$PATH:/usr/local/go/bin"
+PATH="$PATH:/usr/local/lib/nodejs/bin"
 export PATH
 
 # Editor
