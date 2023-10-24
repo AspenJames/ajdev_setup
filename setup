@@ -19,15 +19,22 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+#
+# Customize behavior with environment variables:
+# Variable    Default  Description
+# ========    =======  ===========
+# ASSUME_YES  false    Assume YES to y/n prompts
+# GO_VERSION  1.21.3   Go version to install
 
 # HELPERS
 #########
-
 function _confirm() {
+  [[ -n "$ASSUME_YES" ]] && return 0
   read -p "$1" -n 1 -r reply
+  echo
   case "$reply" in
-    y|Y ) echo && return 0 ;;
-    * )   echo && return 1 ;;
+    y|Y ) return 0 ;;
+    * )   return 1 ;;
   esac
 }
 
@@ -40,22 +47,14 @@ function _copyFile() {
   if [ -f "$dest" ]; then
     if ! cmp -s "$src" "$dest"; then
       if _confirm "Would you like to backup $dest before updating?"; then
-        if [ "$sudo" ]; then
-          _sudo mv "$dest" "${dest}.bak"
-        else
-          mv "$dest" "${dest}.bak"
-        fi
+        [[ "$sudo" ]] && _sudo mv "$dest" "${dest}.bak" || mv "$dest" "${dest}.bak"
       fi
     else
       return 0
     fi
   fi
 
-  if [ "$sudo" ]; then
-    _sudo cp "$src" "$dest"
-  else
-    cp "$src" "$dest"
-  fi
+  [[ "$sudo" ]] && _sudo cp "$src" "$dest" || cp "$src" "$dest"
 }
 
 function _sudo() {
@@ -93,7 +92,6 @@ for prog in \
   curl \
   exa \
   git \
-  golang:go \
   python3 \
   python3-distutils:NULL \
   ripgrep:rg \
@@ -112,6 +110,16 @@ if [ ! -x "$(command -v apt-vim)" ]; then
   echo "Installing apt-vim..."
   curl -sL https://raw.githubusercontent.com/egalpin/apt-vim/master/install.sh | sh
   sed -i '/\.vimpkg\/bin/d' "$HOME/.bashrc"
+fi
+
+# golang
+########
+GO_VERSION="${GO_VERSION:-1.21.3}"
+if [[ ! "$(go version)" =~ "$GO_VERSION" ]]; then
+  echo "Installing golang version $GO_VERSION"
+  sudo rm -rf /usr/local/go
+  curl -sL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
+    | sudo tar -C /usr/local -xzf -
 fi
 
 # CONFIGURE
