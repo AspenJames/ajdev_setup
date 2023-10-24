@@ -102,16 +102,51 @@ for prog in \
   _install "$prog"
 done
 
+# apt-vim
+#########
+# apt-vim dep: python
 if [ ! -x "$(command -v python)" ]; then
   # Symlink python to python3
   _sudo update-alternatives --install /usr/bin/python python "$(which python3)" 100
 fi
 
+# apt-vim install
 if [ ! -x "$(command -v apt-vim)" ]; then
   echo "Installing apt-vim..."
   curl -sL https://raw.githubusercontent.com/egalpin/apt-vim/master/install.sh | sh
   sed -i '/\.vimpkg\/bin/d' "$HOME/.bashrc"
+  PATH="$PATH:$HOME/.vimpkg/bin"
 fi
+
+# apt-vim InstantMarkdown dep: node
+NODE_VERSION="${NODE_VERSION:-v20.8.1}"
+if [[ ! "$(node --version)" =~ "$NODE_VERSION" ]]; then
+  echo "Installing node version $NODE_VERSION"
+  _sudo rm -rf /usr/local/lib/node*
+  curl -sL "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz" \
+    | _sudo tar -C /usr/local/lib -xJf -
+  _sudo mv /usr/local/lib/node-* /usr/local/lib/nodejs
+  _sudo chown -R "$USER:$USER" /usr/local/lib/nodejs
+  PATH="$PATH:/usr/local/lib/nodejs/bin"
+  npm i -g npm
+fi
+
+# apt-vim InstantMarkdown dep: instant-markdown-d
+npm i -g instant-markdown-d
+
+# apt-vim pkgs
+for vimpkg in \
+  airblade/vim-gitgutter \
+  fatih/vim-go \
+  flazz/vim-colorschemes \
+  hashivim/vim-terraform \
+  nathanaelkane/vim-indent-guides \
+  suan/vim-instant-markdown \
+  tpope/vim-fugitive \
+  vim-airline/vim-airline \
+; do
+  apt-vim install -y "https://github.com/${vimpkg}.git"
+done
 
 # golang
 ########
@@ -121,17 +156,6 @@ if [[ ! "$(go version)" =~ "$GO_VERSION" ]]; then
   _sudo rm -rf /usr/local/go
   curl -sL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
     | _sudo tar -C /usr/local -xzf -
-fi
-
-# nodejs
-########
-NODE_VERSION="${NODE_VERSION:-v20.8.1}"
-if [[ ! "$(node --version)" =~ "$NODE_VERSION" ]]; then
-  echo "Installing node version $NODE_VERSION"
-  _sudo rm -rf /usr/local/lib/node*
-  curl -sL "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz" \
-    | _sudo tar -C /usr/local/lib -xJf -
-  _sudo mv /usr/local/lib/node-* /usr/local/lib/nodejs
 fi
 
 # CONFIGURE

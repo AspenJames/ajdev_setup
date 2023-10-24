@@ -1,6 +1,9 @@
+execute pathogen#infect()
+call pathogen#helptags()
+
 syntax on
 filetype plugin indent on
-colors slate
+colors Atelier_EstuaryDark
 
 set nu rnu
 set wildmenu
@@ -20,6 +23,13 @@ nnoremap j gj
 nnoremap k gk
 
 nnoremap <leader>h :noh<CR>
+nnoremap <leader>i :IndentGuidesToggle<CR>
+nnoremap <leader>m :InstantMarkdownPreview<CR>
 nnoremap <leader>q :q<CR>
 nnoremap <leader>w :w<CR>
 nnoremap <leader>wq :wq<CR>
+
+" Don't autostart markdown previews
+let g:instant_markdown_autostart = 0
+" Format tf code on save
+let g:terraform_fmt_on_save = 1
