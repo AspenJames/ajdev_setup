@@ -140,7 +140,9 @@ if [[ ! "$(node --version)" == *"$NODE_VERSION"* ]]; then
 fi
 
 # apt-vim InstantMarkdown dep: instant-markdown-d
-npm i -g instant-markdown-d
+if [[ ! "$(npm ls -g)" == *"instant-markdown-d"* ]]; then
+  npm i -g instant-markdown-d
+fi
 
 # apt-vim pkgs
 for vimpkg in \
