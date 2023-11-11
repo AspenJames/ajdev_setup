@@ -172,6 +172,9 @@ if grep -qE '(histappend|HISTCONTROL|HISTFILESIZE|HISTSIZE|HISTTIMEFORMAT)' "$HO
   sed -i -E '/(histappend|HISTCONTROL|HISTFILESIZE|HISTSIZE|HISTTIMEFORMAT)/d' "$HOME/.bashrc"
 fi
 
+# Setup case insensitive tab completion
+_copyFile files/inputrc "$HOME/.inputrc"
+
 # Git
 #####
 _copyFile files/gitconfig "$HOME/.gitconfig"
