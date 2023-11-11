@@ -48,14 +48,22 @@ function _copyFile() {
   if [ -f "$dest" ]; then
     if ! cmp -s "$src" "$dest"; then
       if _confirm "Would you like to backup $dest before updating?"; then
-        [[ "$sudo" ]] && _sudo mv "$dest" "${dest}.bak" || mv "$dest" "${dest}.bak"
+        if [[ "$sudo" ]]; then
+          _sudo mv "$dest" "${dest}.bak"
+        else
+          mv "$dest" "${dest}.bak"
+        fi
       fi
     else
       return 0
     fi
   fi
 
-  [[ "$sudo" ]] && _sudo cp "$src" "$dest" || cp "$src" "$dest"
+  if [[ "$sudo" ]]; then
+    _sudo cp "$src" "$dest"
+  else
+    cp "$src" "$dest"
+  fi
 }
 
 function _sudo() {
@@ -120,7 +128,7 @@ fi
 
 # apt-vim InstantMarkdown dep: node
 NODE_VERSION="${NODE_VERSION:-v20.8.1}"
-if [[ ! "$(node --version)" =~ "$NODE_VERSION" ]]; then
+if [[ ! "$(node --version)" == *"$NODE_VERSION"* ]]; then
   echo "Installing node version $NODE_VERSION"
   _sudo rm -rf /usr/local/lib/node*
   curl -sL "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz" \
@@ -151,7 +159,7 @@ done
 # golang
 ########
 GO_VERSION="${GO_VERSION:-1.21.3}"
-if [[ ! "$(go version)" =~ "$GO_VERSION" ]]; then
+if [[ ! "$(go version)" == *"$GO_VERSION"* ]]; then
   echo "Installing golang version $GO_VERSION"
   _sudo rm -rf /usr/local/go
   curl -sL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
@@ -171,6 +179,9 @@ done
 if grep -qE '(histappend|HISTCONTROL|HISTFILESIZE|HISTSIZE|HISTTIMEFORMAT)' "$HOME/.bashrc"; then
   sed -i -E '/(histappend|HISTCONTROL|HISTFILESIZE|HISTSIZE|HISTTIMEFORMAT)/d' "$HOME/.bashrc"
 fi
+
+# Setup case insensitive tab completion
+_copyFile files/inputrc "$HOME/.inputrc"
 
 # Git
 #####
