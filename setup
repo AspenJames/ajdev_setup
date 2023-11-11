@@ -48,14 +48,22 @@ function _copyFile() {
   if [ -f "$dest" ]; then
     if ! cmp -s "$src" "$dest"; then
       if _confirm "Would you like to backup $dest before updating?"; then
-        [[ "$sudo" ]] && _sudo mv "$dest" "${dest}.bak" || mv "$dest" "${dest}.bak"
+        if [[ "$sudo" ]]; then
+          _sudo mv "$dest" "${dest}.bak"
+        else
+          mv "$dest" "${dest}.bak"
+        fi
       fi
     else
       return 0
     fi
   fi
 
-  [[ "$sudo" ]] && _sudo cp "$src" "$dest" || cp "$src" "$dest"
+  if [[ "$sudo" ]]; then
+    _sudo cp "$src" "$dest"
+  else
+    cp "$src" "$dest"
+  fi
 }
 
 function _sudo() {
