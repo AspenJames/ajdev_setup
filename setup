@@ -175,6 +175,13 @@ fi
 # CONFIGURE
 ###########
 
+# Kernel
+########
+for file in files/sysctl.d/*.conf; do
+  _copyFile "$file" "/etc/sysctl.d/$(basename "$file")" sudo
+done
+_sudo service procps force-reload
+
 # Profile
 #########
 for file in files/profile.d/*.sh; do
