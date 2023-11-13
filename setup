@@ -21,11 +21,13 @@
 # SOFTWARE.
 #
 # Customize behavior with environment variables:
-#  Variable      Default  Description
-#  ========      =======  ===========
-#  ASSUME_YES    false    Assume YES to y/n prompts
-#  GO_VERSION    1.21.3   Go version to install
-#  NODE_VERSION  v20.8.1  Node version to install
+#  Variable       Default      Description
+#  ========       =======      ===========
+#  ASSUME_YES     false        Assume YES to y/n prompts
+#  GO_VERSION     1.21.3       Go version to install
+#  NODE_VERSION   v20.8.1      Node version to install
+#  REGOLITH_ARCH  amd64        Arch string for regolith install
+#  REGOLITH_URL   (generated)  URL for automated regolith desktop install
 
 # HELPERS
 #########
@@ -193,3 +195,38 @@ _copyFile files/gitconfig "$HOME/.gitconfig"
 # Vim
 #####
 _copyFile files/vimrc "$HOME/.vimrc"
+
+# REGOLITH
+##########
+function _debian_ver() {
+  [[ -f /etc/os-release ]] && \
+    grep VERSION_ID /etc/os-release | \
+    cut -f2 -d= | \
+    tr -d '"'
+}
+
+function _ubuntu_ver() {
+  [[ -f /etc/lsb-release ]] && \
+    grep DISTRIB_RELEASE /etc/lsb-release | \
+    cut -f2 -d=
+}
+
+[[ -n "$(_debian_ver)" ]] && REGOLITH_INST_VER="debian-$(_debian_ver)"
+[[ -n "$(_ubuntu_ver)" ]] && REGOLITH_INST_VER="ubuntu-$(_ubuntu_ver)"
+
+REGOLITH_URL="${REGOLITH_URL:-https://regolith-desktop.com/install-release-${REGOLITH_INST_VER}-${REGOLITH_ARCH:-amd64}.txt}"
+
+if ! REGOLITH_INSTALL="$(curl --fail -sL "$REGOLITH_URL")"; then
+  echo "WARNING: Unable to install regolith-desktop from $REGOLITH_URL"
+else
+  bash -c "$REGOLITH_INSTALL"
+  sudo apt install -y \
+    regolith-desktop \
+    regolith-session-flashback \
+    regolith-look-ayu \
+    regolith-look-ayu-dark \
+    regolith-look-ayu-mirage \
+    regolith-look-gruvbox \
+    regolith-look-nevil \
+    regolith-look-nord
+fi
