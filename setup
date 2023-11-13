@@ -97,6 +97,7 @@ function _install() {
 _updatePkgRepos
 
 for prog in \
+  bat:batcat \
   build-essential:NULL \
   curl \
   exa \
