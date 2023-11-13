@@ -106,6 +106,7 @@ for prog in \
   git \
   python3 \
   python3-distutils:NULL \
+  qemu-system:qemu-system-x86_64 \
   ripgrep:rg \
   shellcheck \
   vim \
