@@ -27,7 +27,7 @@ pushd "$DL_DIR" || true
   fi
 
   pushd "$DL_DIR/ajdev_init-${TGT_BRANCH}" || true
-    sh ./setup
+    bash ./setup
   popd || true
 
 popd || true

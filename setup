@@ -228,6 +228,7 @@ if ! REGOLITH_INSTALL="$(curl --fail -sL "$REGOLITH_URL")"; then
   echo "WARNING: Unable to install regolith-desktop from $REGOLITH_URL"
 else
   bash -c "$REGOLITH_INSTALL"
+  sudo apt update
   sudo apt install -y \
     regolith-desktop \
     regolith-session-flashback \
