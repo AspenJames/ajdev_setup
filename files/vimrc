@@ -7,7 +7,7 @@ colors Atelier_EstuaryDark
 
 set nu rnu
 set wildmenu
-set hlsearch incsearch smartcase
+set hlsearch incsearch ignorecase smartcase
 set scrolloff=5
 set wrap linebreak
 set nobackup noundofile
