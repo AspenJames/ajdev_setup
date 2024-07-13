@@ -24,8 +24,8 @@
 #  Variable       Default      Description
 #  ========       =======      ===========
 #  ASSUME_YES     false        Assume YES to y/n prompts
-#  GO_VERSION     1.21.3       Go version to install
-#  NODE_VERSION   v20.15.0     Node version to install
+#  GO_VERSION     1.22.5       Go version to install
+#  NODE_VERSION   v20.15.1     Node version to install
 #  REGOLITH_ARCH  amd64        Arch string for regolith install
 #  REGOLITH_URL   (generated)  URL for automated regolith desktop install
 
@@ -131,7 +131,7 @@ if [ ! -x "$(command -v apt-vim)" ]; then
 fi
 
 # apt-vim InstantMarkdown dep: node
-NODE_VERSION="${NODE_VERSION:-v20.15.0}"
+NODE_VERSION="${NODE_VERSION:-v20.15.1}"
 if [[ ! "$(node --version)" == *"$NODE_VERSION"* ]]; then
   echo "Installing node version $NODE_VERSION"
   _sudo rm -rf /usr/local/lib/node*
@@ -164,7 +164,7 @@ done
 
 # golang
 ########
-GO_VERSION="${GO_VERSION:-1.21.3}"
+GO_VERSION="${GO_VERSION:-1.22.5}"
 if [[ ! "$(go version)" == *"$GO_VERSION"* ]]; then
   echo "Installing golang version $GO_VERSION"
   _sudo rm -rf /usr/local/go
