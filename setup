@@ -141,6 +141,7 @@ if [ ! -x "$(command -v apt-vim)" ]; then
   curl -sL https://raw.githubusercontent.com/egalpin/apt-vim/master/install.sh | sh
   sed -i '/\.vimpkg\/bin/d' "$HOME/.bashrc"
   PATH="$PATH:$HOME/.vimpkg/bin"
+  echo 'PATH="$PATH:$HOME/.vimpkg/bin"' >> "$HOME/.bashrc"
 fi
 
 # apt-vim InstantMarkdown dep: node
@@ -152,7 +153,9 @@ if [[ ! "$(node --version)" == *"$NODE_VERSION"* ]]; then
     | _sudo tar -C /usr/local/lib -xJf -
   _sudo mv /usr/local/lib/node-* /usr/local/lib/nodejs
   _sudo chown -R "$USER:$USER" /usr/local/lib/nodejs
+  sed -i '/\nodejs\/bin/d' "$HOME/.bashrc"
   PATH="$PATH:/usr/local/lib/nodejs/bin"
+  echo 'PATH="$PATH:/usr/local/lib/nodejs/bin"' >> "$HOME/.bashrc"
   npm i -g npm
 fi
 
@@ -183,6 +186,9 @@ if [[ ! "$(go version)" == *"$GO_VERSION"* ]]; then
   _sudo rm -rf /usr/local/go
   curl -sL "https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz" \
     | _sudo tar -C /usr/local -xzf -
+  sed -i '/\go\/bin/d' "$HOME/.bashrc"
+  PATH="$PATH:/usr/local/go/bin"
+  echo 'PATH="$PATH:/usr/local/go/bin"' >> "$HOME/.bashrc"
 fi
 
 # CONFIGURE
