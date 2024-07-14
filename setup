@@ -233,6 +233,11 @@ function _detect_os_codename() {
 }
 
 function _install_regolith() {
+  if [ -x "$(command -v regolith-session)" ]; then
+    # Regolith already installed
+    return
+  fi
+
   if [ -z "$ARCH" ]; then
     echo "Unable to install Regolith; incompatible arch"
     return
