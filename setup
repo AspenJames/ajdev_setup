@@ -24,10 +24,27 @@
 #  Variable       Default      Description
 #  ========       =======      ===========
 #  ASSUME_YES     false        Assume YES to y/n prompts
-#  GO_VERSION     1.21.3       Go version to install
-#  NODE_VERSION   v20.15.0     Node version to install
-#  REGOLITH_ARCH  amd64        Arch string for regolith install
-#  REGOLITH_URL   (generated)  URL for automated regolith desktop install
+#  GO_VERSION     1.22.5       Go version to install
+#  NODE_VERSION   v20.15.1     Node version to install
+#  OS_CODENAME    (detected)   Operating system codename
+#
+# Disable SC2016 (info): Expressions don't expand in single quotes, use double
+# quotes for that. https://www.shellcheck.net/wiki/SC2016
+# shellcheck disable=SC2016
+
+# ARCH
+######
+case "$(arch)" in
+  aarch64)
+    ARCH=arm64
+    NODE_ARCH=arm64
+    ;;
+  x86_64)
+    ARCH=amd64
+    NODE_ARCH=x64
+    ;;
+esac
+
 
 # HELPERS
 #########
@@ -106,6 +123,7 @@ for prog in \
   git \
   python3 \
   python3-distutils:NULL \
+  python3-setuptools:NULL \
   qemu-system:qemu-system-x86_64 \
   ripgrep:rg \
   shellcheck \
@@ -125,21 +143,31 @@ fi
 # apt-vim install
 if [ ! -x "$(command -v apt-vim)" ]; then
   echo "Installing apt-vim..."
-  curl -sL https://raw.githubusercontent.com/egalpin/apt-vim/master/install.sh | sh
+  # Clone repo
+  mkdir -p "$HOME/src/egalpin"
+  git clone "https://github.com/egalpin/apt-vim.git" "$HOME/src/egalpin/apt-vim"
+
+  # Run init script
+  "$HOME/src/egalpin/apt-vim/apt-vim" init
+
+  # Add vimpkg bin directory to ~/.bashrc
   sed -i '/\.vimpkg\/bin/d' "$HOME/.bashrc"
   PATH="$PATH:$HOME/.vimpkg/bin"
+  echo 'PATH="$PATH:$HOME/.vimpkg/bin"' >> "$HOME/.bashrc"
 fi
 
 # apt-vim InstantMarkdown dep: node
-NODE_VERSION="${NODE_VERSION:-v20.15.0}"
+NODE_VERSION="${NODE_VERSION:-v20.15.1}"
 if [[ ! "$(node --version)" == *"$NODE_VERSION"* ]]; then
   echo "Installing node version $NODE_VERSION"
   _sudo rm -rf /usr/local/lib/node*
-  curl -sL "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.xz" \
+  curl -sL "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz" \
     | _sudo tar -C /usr/local/lib -xJf -
   _sudo mv /usr/local/lib/node-* /usr/local/lib/nodejs
   _sudo chown -R "$USER:$USER" /usr/local/lib/nodejs
+  sed -i '/\nodejs\/bin/d' "$HOME/.bashrc"
   PATH="$PATH:/usr/local/lib/nodejs/bin"
+  echo 'PATH="$PATH:/usr/local/lib/nodejs/bin"' >> "$HOME/.bashrc"
   npm i -g npm
 fi
 
@@ -164,12 +192,15 @@ done
 
 # golang
 ########
-GO_VERSION="${GO_VERSION:-1.21.3}"
+GO_VERSION="${GO_VERSION:-1.22.5}"
 if [[ ! "$(go version)" == *"$GO_VERSION"* ]]; then
   echo "Installing golang version $GO_VERSION"
   _sudo rm -rf /usr/local/go
-  curl -sL "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
+  curl -sL "https://go.dev/dl/go${GO_VERSION}.linux-${ARCH}.tar.gz" \
     | _sudo tar -C /usr/local -xzf -
+  sed -i '/\go\/bin/d' "$HOME/.bashrc"
+  PATH="$PATH:/usr/local/go/bin"
+  echo 'PATH="$PATH:/usr/local/go/bin"' >> "$HOME/.bashrc"
 fi
 
 # CONFIGURE
@@ -193,6 +224,14 @@ if grep -qE '(histappend|HISTCONTROL|HISTFILESIZE|HISTSIZE|HISTTIMEFORMAT)' "$HO
   sed -i -E '/(histappend|HISTCONTROL|HISTFILESIZE|HISTSIZE|HISTTIMEFORMAT)/d' "$HOME/.bashrc"
 fi
 
+# Set gnome-terminal to use login shell
+if [ -x "$(command -v gsettings)" ]; then
+  UUID="$(gsettings get org.gnome.Terminal.ProfilesList default | tr -d \')"
+  gsettings set \
+    org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:"${UUID}"/ \
+    login-shell true
+fi
+
 # Setup case insensitive tab completion
 _copyFile files/inputrc "$HOME/.inputrc"
 
@@ -206,30 +245,55 @@ _copyFile files/vimrc "$HOME/.vimrc"
 
 # REGOLITH
 ##########
-function _debian_ver() {
+function _detect_os_codename() {
   [[ -f /etc/os-release ]] && \
-    grep VERSION_ID /etc/os-release | \
+    grep VERSION_CODENAME /etc/os-release | \
     cut -f2 -d= | \
     tr -d '"'
 }
 
-function _ubuntu_ver() {
-  [[ -f /etc/lsb-release ]] && \
-    grep DISTRIB_RELEASE /etc/lsb-release | \
-    cut -f2 -d=
-}
+function _install_regolith() {
+  if [ -x "$(command -v regolith-session)" ]; then
+    # Regolith already installed
+    return
+  fi
 
-[[ -n "$(_debian_ver)" ]] && REGOLITH_INST_VER="debian-$(_debian_ver)"
-[[ -n "$(_ubuntu_ver)" ]] && REGOLITH_INST_VER="ubuntu-$(_ubuntu_ver)"
+  if [ -z "$ARCH" ]; then
+    echo "Unable to install Regolith; incompatible arch"
+    return
+  fi
 
-REGOLITH_URL="${REGOLITH_URL:-https://regolith-desktop.com/install-release-${REGOLITH_INST_VER}-${REGOLITH_ARCH:-amd64}.txt}"
+  OS_CODENAME="${OS_CODENAME:-$(_detect_os_codename)}"
+  if [ -z "$OS_CODENAME" ]; then
+    echo "Unable to install Regolith; incompatible OS"
+    return
+  fi
 
-if ! REGOLITH_INSTALL="$(curl --fail -sL "$REGOLITH_URL")"; then
-  echo "WARNING: Unable to install regolith-desktop from $REGOLITH_URL"
-else
-  bash -c "$REGOLITH_INSTALL"
-  sudo apt update
-  sudo apt install -y \
+  case "$OS_CODENAME" in
+    bookworm)
+      REGOLITH_DEB="deb [arch=${ARCH} signed-by=/usr/share/keyrings/regolith-archive-keyring.gpg] https://regolith-desktop.org/release-3_0-debian-bookworm-${ARCH} bookworm main" ;;
+    trixie) # Debian testing
+      REGOLITH_DEB="deb [arch=${ARCH} signed-by=/usr/share/keyrings/regolith-archive-keyring.gpg] https://regolith-desktop.org/testing-debian-testing-${ARCH} testing main" ;;
+    jammy)
+      REGOLITH_DEB="deb [arch=${ARCH} signed-by=/usr/share/keyrings/regolith-archive-keyring.gpg] https://regolith-desktop.org/release-3_1-ubuntu-jammy-${ARCH} jammy main" ;;
+    mantic)
+      REGOLITH_DEB="deb [arch=${ARCH} signed-by=/usr/share/keyrings/regolith-archive-keyring.gpg] https://regolith-desktop.org/release-3_1-ubuntu-mantic-${ARCH} mantic main" ;;
+  esac
+
+  if [ -z "$REGOLITH_DEB" ]; then
+    echo "Unable to install Regolith; incompatible OS codename '$OS_CODENAME'"
+    return
+  fi
+
+  # Register the Regolith public key
+  wget -qO - https://regolith-desktop.org/regolith.key | gpg --dearmor | _sudo tee /usr/share/keyrings/regolith-archive-keyring.gpg > /dev/null
+
+  # Add the Regolith repository URL
+  echo "$REGOLITH_DEB" | _sudo tee /etc/apt/sources.list.d/regolith.list
+
+  # Update apt & install Regolith
+  _sudo apt update
+  _sudo apt install -y \
     regolith-desktop \
     regolith-session-flashback \
     regolith-look-ayu \
@@ -238,4 +302,6 @@ else
     regolith-look-gruvbox \
     regolith-look-nevil \
     regolith-look-nord
-fi
+}
+_install_regolith
+
