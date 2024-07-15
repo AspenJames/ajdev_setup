@@ -119,6 +119,7 @@ for prog in \
   git \
   python3 \
   python3-distutils:NULL \
+  python3-setuptools:NULL \
   qemu-system:qemu-system-x86_64 \
   ripgrep:rg \
   shellcheck \
@@ -138,7 +139,14 @@ fi
 # apt-vim install
 if [ ! -x "$(command -v apt-vim)" ]; then
   echo "Installing apt-vim..."
-  curl -sL https://raw.githubusercontent.com/egalpin/apt-vim/master/install.sh | sh
+  # Clone repo
+  mkdir -p "$HOME/src/egalpin"
+  git clone "https://github.com/egalpin/apt-vim.git" "$HOME/src/egalpin/apt-vim"
+
+  # Run init script
+  "$HOME/src/egalpin/apt-vim/apt-vim" init
+
+  # Add vimpkg bin directory to ~/.bashrc
   sed -i '/\.vimpkg\/bin/d' "$HOME/.bashrc"
   PATH="$PATH:$HOME/.vimpkg/bin"
   echo 'PATH="$PATH:$HOME/.vimpkg/bin"' >> "$HOME/.bashrc"
