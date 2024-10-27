@@ -119,7 +119,7 @@ for prog in \
   bat:batcat \
   build-essential:NULL \
   curl \
-  exa \
+  eza \
   git \
   python3 \
   python3-distutils:NULL \

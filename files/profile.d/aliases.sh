@@ -16,7 +16,7 @@ alias gs='git status'
 # Utils
 #######
 [ -x "$(command -v batcat)" ] && alias bat=batcat
-[ -x "$(command -v exa)" ] && alias ls=exa
+[ -x "$(command -v eza)" ] && alias ls=eza
 
 # Allow aliases in sudo
 # https://wiki.archlinux.org/title/Sudo#Passing_aliases
