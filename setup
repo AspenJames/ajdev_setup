@@ -302,6 +302,10 @@ function _install_regolith() {
     regolith-look-gruvbox \
     regolith-look-nevil \
     regolith-look-nord
+
+  # Add focus follows mouse config
+  mkdir -p ~/.config/regolith3/i3/config.d
+  echo "focus_follows_mouse yes" > ~/.config/regolith3/i3/config.d/90_focus_follows_mouse
 }
 _install_regolith
 
