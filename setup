@@ -173,7 +173,7 @@ fi
 
 # apt-vim InstantMarkdown dep: instant-markdown-d
 if [[ ! "$(npm ls -g)" == *"instant-markdown-d"* ]]; then
-  npm i -g instant-markdown-d
+  /usr/local/lib/nodejs/bin/npm i -g instant-markdown-d
 fi
 
 # apt-vim pkgs
@@ -187,7 +187,7 @@ for vimpkg in \
   tpope/vim-fugitive \
   vim-airline/vim-airline \
 ; do
-  apt-vim install -y "https://github.com/${vimpkg}.git"
+  "$HOME/.vimpkg/bin/apt-vim" install -y "https://github.com/${vimpkg}.git"
 done
 
 # golang
