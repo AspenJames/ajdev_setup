@@ -232,6 +232,10 @@ if [ -x "$(command -v gsettings)" ]; then
     login-shell true
 fi
 
+# Set xfce4-terminal login shell config
+mkdir -p "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml"
+_copyFile files/xfce4-terminal.xml "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml/"
+
 # Setup case insensitive tab completion
 _copyFile files/inputrc "$HOME/.inputrc"
 
