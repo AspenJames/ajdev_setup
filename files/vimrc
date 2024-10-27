@@ -3,7 +3,13 @@ call pathogen#helptags()
 
 syntax on
 filetype plugin indent on
-colors Atelier_EstuaryDark
+colors wolfpack
+"" Alternative colors
+"""""""""""""""""""""
+"" Atelier_EstuaryDark
+"" basic-dark
+"" Benokai
+"" cabin
 
 set nu rnu
 set wildmenu
