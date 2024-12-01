@@ -187,7 +187,7 @@ for vimpkg in \
   tpope/vim-fugitive \
   vim-airline/vim-airline \
 ; do
-  apt-vim install -y "https://github.com/${vimpkg}.git"
+  "$HOME/.vimpkg/bin/apt-vim" install -y "https://github.com/${vimpkg}.git"
 done
 
 # golang
@@ -242,66 +242,4 @@ _copyFile files/gitconfig "$HOME/.gitconfig"
 # Vim
 #####
 _copyFile files/vimrc "$HOME/.vimrc"
-
-# REGOLITH
-##########
-function _detect_os_codename() {
-  [[ -f /etc/os-release ]] && \
-    grep VERSION_CODENAME /etc/os-release | \
-    cut -f2 -d= | \
-    tr -d '"'
-}
-
-function _install_regolith() {
-  if [ -x "$(command -v regolith-session)" ]; then
-    # Regolith already installed
-    return
-  fi
-
-  if [ -z "$ARCH" ]; then
-    echo "Unable to install Regolith; incompatible arch"
-    return
-  fi
-
-  OS_CODENAME="${OS_CODENAME:-$(_detect_os_codename)}"
-  if [ -z "$OS_CODENAME" ]; then
-    echo "Unable to install Regolith; incompatible OS"
-    return
-  fi
-
-  case "$OS_CODENAME" in
-    bookworm)
-      REGOLITH_DEB="deb [arch=${ARCH} signed-by=/usr/share/keyrings/regolith-archive-keyring.gpg] https://regolith-desktop.org/release-3_0-debian-bookworm-${ARCH} bookworm main" ;;
-    trixie) # Debian testing
-      REGOLITH_DEB="deb [arch=${ARCH} signed-by=/usr/share/keyrings/regolith-archive-keyring.gpg] https://regolith-desktop.org/testing-debian-testing-${ARCH} testing main" ;;
-    jammy)
-      REGOLITH_DEB="deb [arch=${ARCH} signed-by=/usr/share/keyrings/regolith-archive-keyring.gpg] https://regolith-desktop.org/release-3_1-ubuntu-jammy-${ARCH} jammy main" ;;
-    mantic)
-      REGOLITH_DEB="deb [arch=${ARCH} signed-by=/usr/share/keyrings/regolith-archive-keyring.gpg] https://regolith-desktop.org/release-3_1-ubuntu-mantic-${ARCH} mantic main" ;;
-  esac
-
-  if [ -z "$REGOLITH_DEB" ]; then
-    echo "Unable to install Regolith; incompatible OS codename '$OS_CODENAME'"
-    return
-  fi
-
-  # Register the Regolith public key
-  wget -qO - https://regolith-desktop.org/regolith.key | gpg --dearmor | _sudo tee /usr/share/keyrings/regolith-archive-keyring.gpg > /dev/null
-
-  # Add the Regolith repository URL
-  echo "$REGOLITH_DEB" | _sudo tee /etc/apt/sources.list.d/regolith.list
-
-  # Update apt & install Regolith
-  _sudo apt update
-  _sudo apt install -y \
-    regolith-desktop \
-    regolith-session-flashback \
-    regolith-look-ayu \
-    regolith-look-ayu-dark \
-    regolith-look-ayu-mirage \
-    regolith-look-gruvbox \
-    regolith-look-nevil \
-    regolith-look-nord
-}
-_install_regolith
 
